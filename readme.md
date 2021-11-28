@@ -54,7 +54,7 @@ If carpet mod is available for the version you want to pregenerate, I strongly s
 The script uses next to none resources of your computer. I suggest running it on a raspberry pi if you have one available. I ran this script for a server with a raspberry pi 0w with no problems.
 
 ## Future improvements
--**Error Handing**: Right now the program does not do any error handling. If an error occurs the user will not know why and the program may not stop.
+- **Error Handing**: Right now the program does not do any error handling. If an error occurs the user will not know why and the program may not stop.
 - **Spiraling moving algorithm**: An algorithm that pregenerates the terrain in a spiral instead of just iterating rows and columns in a grid is a priority improvement. This would mean that the program would start from the middle and start moving outwards. If the program has not reached the radius border, the world is still playable.
 - **Singleplayer pregenerating**: Whether it's for a singleplayer or to later upload to a server, the program should have an option to run it in singleplayer without using rcon.
 - **Graphical Interface**: This would help less experienced server admins to use the program.
