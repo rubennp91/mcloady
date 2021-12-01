@@ -2,6 +2,7 @@ from mcrcon import MCRcon
 from time import sleep
 import configparser
 import os
+from datetime import timedelta
 
 
 def mcrcon(config):
@@ -11,7 +12,14 @@ def mcrcon(config):
     sent from other functions
     """
     mcr = MCRcon(config['RCON']['server_ip'], config['RCON']['password'])
-    mcr.connect()
+    try:
+        mcr.connect()
+    except Exception:
+        print("Could not connect to RCON. Check the following:\n \
+                - Server is online\n \
+                - enable-rcon = true in server.properties\n \
+                - Password and IP are the same in server.properties and config.ini")
+        exit()
     return mcr
 
 
@@ -64,8 +72,31 @@ def send_tp(mcr, x, y, z, a, b, player):
     """
     resp = mcr.command("/tp " + player + " " + str(x) + " " +
                        str(y) + " " + str(z) + " " + str(a) + " " + str(b))
-    print(resp)
     return resp
+
+
+def calculate_time_remaining(i, j, radius, increments, first_wait, second_wait):
+    """
+    Function to calculate the time remaining on the script.
+    This can be done by checking the current position of
+    the player against the total radius.
+    i = number of iterations passed in the x axis
+    j = number of iterations passed in the z axis
+    """
+    number_of_iterations_per_row = (radius*2)/increments
+    remaining_iterations_in_current_row = \
+        number_of_iterations_per_row - j
+
+    # Minus one because we need to count out the current row
+    remaining_total_rows = number_of_iterations_per_row \
+        - i-1
+    time_per_iteration = first_wait + second_wait*3
+
+    total_time_remaining = \
+        remaining_iterations_in_current_row*time_per_iteration + \
+        remaining_total_rows*number_of_iterations_per_row*time_per_iteration
+
+    return str(timedelta(seconds=total_time_remaining))
 
 
 def main(config):
@@ -87,8 +118,8 @@ def main(config):
     x = int(last_tp[0])
     z = int(last_tp[2])
 
-    for x in range(x, radius+increments, increments):
-        for z in range(z, radius+increments, increments):
+    for i, x in enumerate(range(x, radius+increments, increments)):
+        for j, z in enumerate(range(z, radius+increments, increments)):
             send_tp(mcr, x, y, z, -90, 20, player)
             sleep(first_wait)
             send_tp(mcr, x, y, z, 0, 20, player)
@@ -99,8 +130,16 @@ def main(config):
             sleep(second_wait)
             with open(save_file, 'w') as f:
                 f.write(str(x) + "," + str(y) + "," + str(z))
-        z = int(-abs(radius))
+            remaining_time = calculate_time_remaining(i,
+                                                      j,
+                                                      radius,
+                                                      increments,
+                                                      first_wait,
+                                                      second_wait)
+            print("Player teleported to position:", str(x), str(y), str(z))
+            print("Approximate remaining time:", remaining_time)
 
+        z = int(-abs(radius))
     mcr.disconnect()
     print("All finished!")
 
