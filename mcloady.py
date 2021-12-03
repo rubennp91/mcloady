@@ -53,11 +53,11 @@ def read_last_tp(config):
     """
     save_file = config['FILE']['last_tp']
     if not os.path.isfile(save_file):
-        radius = config['PARAMETERS']['radius']
         altitude = config['PARAMETERS']['altitude']
-        last_tp = [-abs(int(radius)), int(altitude), -abs(int(radius))]
+        # X, Z, dX, dZ, start_i
+        last_tp = [0, 0, 0, -1, 0]
         with open(save_file, 'w') as f:
-            f.write(str(last_tp[0]) + "," + str(last_tp[1]) + "," + str(last_tp[2]))
+            f.write(','.join(str(x) for x in last_tp))
     else:
         with open(save_file, 'r') as f:
             last_tp = f.read()
@@ -74,27 +74,33 @@ def send_tp(mcr, x, y, z, a, b, player):
                        str(y) + " " + str(z) + " " + str(a) + " " + str(b))
     return resp
 
+def generate_node(mcr, x, y, z, first_wait, second_wait, player):
+    """
+    Generate a node using the coordinates and angles. Take in the
+    Minecraft RCON object, the coordinates, the primary and secondary
+    wait times, and the player object.
+    """
+    send_tp(mcr, x, y, z, -90, 20, player)
+    sleep(first_wait)
+    send_tp(mcr, x, y, z, 0, 20, player)
+    sleep(second_wait)
+    send_tp(mcr, x, y, z, 90, 20, player)
+    sleep(second_wait)
+    send_tp(mcr, x, y, z, 180, 20, player)
+    sleep(second_wait)
 
-def calculate_time_remaining(i, j, radius, increments, first_wait, second_wait):
+def calculate_time_remaining(i, normalized_nodes, first_wait, second_wait):
     """
     Function to calculate the time remaining on the script.
-    This can be done by checking the current position of
-    the player against the total radius.
-    i = number of iterations passed in the x axis
-    j = number of iterations passed in the z axis
+    This can be done by checking the iteration number of
+    and the total number of nodes to be generated. Subtracting
+    the two gives the increments left to be generated. Multiplying by the
+    time required for each node to be generated gives the time left.
     """
-    number_of_iterations_per_row = (radius*2)/increments
-    remaining_iterations_in_current_row = \
-        number_of_iterations_per_row - j
-
-    # Minus one because we need to count out the current row
-    remaining_total_rows = number_of_iterations_per_row \
-        - i-1
+    total_iterations_left = normalized_nodes - i
     time_per_iteration = first_wait + second_wait*3
 
-    total_time_remaining = \
-        remaining_iterations_in_current_row*time_per_iteration + \
-        remaining_total_rows*number_of_iterations_per_row*time_per_iteration
+    total_time_remaining = total_iterations_left*time_per_iteration
 
     return str(timedelta(seconds=total_time_remaining))
 
@@ -115,31 +121,40 @@ def main(config):
     first_wait = int(config['PARAMETERS']['first_wait'])
     second_wait = int(config['PARAMETERS']['second_wait'])
 
+    # Load last saved tp coordinates, next increment, and current iteration.
     x = int(last_tp[0])
-    z = int(last_tp[2])
+    z = int(last_tp[1])
+    dx = int(last_tp[2])
+    dz = int(last_tp[3])
+    start_i = int(last_tp[4])
 
-    for i, x in enumerate(range(x, radius+increments, increments)):
-        for j, z in enumerate(range(z, radius+increments, increments)):
-            send_tp(mcr, x, y, z, -90, 20, player)
-            sleep(first_wait)
-            send_tp(mcr, x, y, z, 0, 20, player)
-            sleep(second_wait)
-            send_tp(mcr, x, y, z, 90, 20, player)
-            sleep(second_wait)
-            send_tp(mcr, x, y, z, 180, 20, player)
-            sleep(second_wait)
+    # 2D Spiral Algorithm
+    # https://stackoverflow.com/questions/398299/looping-in-a-spiral
+    normalized_radius = radius / increments
+    normalized_diameter = normalized_radius * 2
+    normalized_nodes = normalized_diameter ** 2
+    for i in range(round(normalized_nodes)):
+        if i < start_i:
+            i = start_i - 1
+        if (-normalized_radius <= x <= normalized_radius) and \
+           (-normalized_radius <= z <= normalized_radius):
+            actual_x = int(x * increments)
+            actual_z = int(z * increments)
+            generate_node(mcr, actual_x, y, actual_z, first_wait, second_wait, player)
             with open(save_file, 'w') as f:
-                f.write(str(x) + "," + str(y) + "," + str(z))
+                # Write position and next step to file
+                f.write("{0},{1},{2},{3},{4}\n".format(x, z, dx, dz, i))
             remaining_time = calculate_time_remaining(i,
-                                                      j,
-                                                      radius,
-                                                      increments,
+                                                      normalized_nodes,
                                                       first_wait,
                                                       second_wait)
-            print("Player teleported to position:", str(x), str(y), str(z))
+            print("Player teleported to position:", str(actual_x), str(y), str(actual_z))
+            print("Player teleported to normalized position:", x, str(y), z)
             print("Approximate remaining time:", remaining_time)
 
-        z = int(-abs(radius))
+            if x == z or (x < 0 and x == -z) or (x > 0 and x == 1-z):
+                dx, dz = -dz, dx
+            x, z = x+dx, z+dz
     mcr.disconnect()
     print("All finished!")
 
