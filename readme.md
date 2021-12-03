@@ -20,7 +20,7 @@ rcon.password=setyourownpassword
 Once that is done you can execute the script and leave it running until it finishes. You can stop it at any time and continue afterwards, the script will remember where it stopped and continue from there.
 
 ## How does it work
-The script uses a player for loading areas in the world. It puts the player into spectator mode and it moves it around in increments, drawing a grid. You can use carpet mod if you don't want to have a Minecraft client open.
+The script uses a player for loading areas in the world. It puts the player into spectator mode, then moves the player in a spiral. You can use carpet mod if you don't want to have a Minecraft client open.
 
 If stopped at any time and started again, it will start from the last saved position (which it does automatically).
 
@@ -55,7 +55,6 @@ The script uses next to none resources of your computer. I suggest running it on
 
 ## Future improvements
 - **Error Handing**: Right now the program does not do any error handling. If an error occurs the user will not know why and the program may not stop.
-- **Spiraling moving algorithm**: An algorithm that pregenerates the terrain in a spiral instead of just iterating rows and columns in a grid is a priority improvement. This would mean that the program would start from the middle and start moving outwards. If the program has not reached the radius border, the world is still playable.
 - **Singleplayer pregenerating**: Whether it's for a singleplayer or to later upload to a server, the program should have an option to run it in singleplayer without using rcon.
 - **Graphical Interface**: This would help less experienced server admins to use the program.
 
