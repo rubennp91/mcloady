@@ -132,10 +132,9 @@ def main(config):
     # https://stackoverflow.com/questions/398299/looping-in-a-spiral
     normalized_radius = radius / increments
     normalized_diameter = normalized_radius * 2
-    normalized_nodes = normalized_diameter ** 2
-    for i in range(round(normalized_nodes)):
-        if i < start_i:
-            i = start_i - 1
+    normalized_nodes = round(normalized_diameter ** 2)
+    iterator = start_i
+    while iterator < normalized_nodes:
         if (-normalized_radius <= x <= normalized_radius) and \
            (-normalized_radius <= z <= normalized_radius):
             actual_x = int(x * increments)
@@ -143,18 +142,20 @@ def main(config):
             generate_node(mcr, actual_x, y, actual_z, first_wait, second_wait, player)
             with open(save_file, 'w') as f:
                 # Write position and next step to file
-                f.write("{0},{1},{2},{3},{4}\n".format(x, z, dx, dz, i))
-            remaining_time = calculate_time_remaining(i,
+                f.write("{0},{1},{2},{3},{4}\n".format(x, z, dx, dz, iterator))
+            remaining_time = calculate_time_remaining(iterator,
                                                       normalized_nodes,
                                                       first_wait,
                                                       second_wait)
             print("Player teleported to position:", str(actual_x), str(y), str(actual_z))
             print("Player teleported to normalized position:", x, str(y), z)
+            print("{0}/{1} nodes completed. {2} left.".format(iterator, normalized_nodes, (normalized_nodes - iterator)))
             print("Approximate remaining time:", remaining_time)
 
             if x == z or (x < 0 and x == -z) or (x > 0 and x == 1-z):
                 dx, dz = -dz, dx
             x, z = x+dx, z+dz
+        iterator += 1
     mcr.disconnect()
     print("All finished!")
 
