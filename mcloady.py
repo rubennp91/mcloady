@@ -168,6 +168,7 @@ if __name__ == '__main__':
             main(config)
         except KeyboardInterrupt:
             print("\nExiting...")
+            exit(0)
         except mcrcon.exceptions.MCRconException as e:
             print("\nMCRcon Error: ", e)
             if attempts < 3:
@@ -176,4 +177,5 @@ if __name__ == '__main__':
                 sleep(5)
             else:
                 print("Failed 3 times. Exiting...")
+                exit(1)
 
