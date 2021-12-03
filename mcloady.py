@@ -136,8 +136,8 @@ def main(config):
     for i in range(round(normalized_nodes)):
         if i < start_i:
             i = start_i - 1
-        if (-normalized_radius < x < normalized_radius) and \
-           (-normalized_radius < z < normalized_radius):
+        if (-normalized_radius <= x <= normalized_radius) and \
+           (-normalized_radius <= z <= normalized_radius):
             actual_x = int(x * increments)
             actual_z = int(z * increments)
             generate_node(mcr, actual_x, y, actual_z, first_wait, second_wait, player)
