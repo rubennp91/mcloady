@@ -41,7 +41,7 @@ Depending on the area you want to load and the time increments you're using, it 
 | second_wait | After the first turn of the player has occurred, the program will wait this time to turn the player around.                                                                                            |
 
 ## Usage in singleplayer
-To use in singleplayer you can set up a minecraft server on your computer. Set the ip to "0.0.0.0" and configure the rest of the parameters as if you were to use it in a server. There is no need to open any ports.
+To use in singleplayer you can set up a minecraft server on your computer. Set the ip to "0.0.0.0" and configure the rest of the parameters as if you were to use it in a server. There is no need to open any ports. If you don't want to set up a server, you can use [mcloady_singleplayer](https://github.com/rubennp91/mcloady_singleplayer).
 
 ## Dependencies
 Python dependencies:
