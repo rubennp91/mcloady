@@ -162,4 +162,20 @@ def main(config):
 if __name__ == '__main__':
     config = configparser.ConfigParser()
     config.read("config.ini")
-    main(config)
+    attempts = 0
+    while attempts < 3:
+        try:
+            main(config)
+        except KeyboardInterrupt:
+            print("\nExiting...")
+            exit(0)
+        except mcrcon.exceptions.MCRconException as e:
+            print("\nMCRcon Error: ", e)
+            if attempts < 3:
+                attempts += 1
+                print("Will reattempt in 5 seconds...")
+                sleep(5)
+            else:
+                print("Failed 3 times. Exiting...")
+                exit(1)
+
