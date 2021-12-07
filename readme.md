@@ -58,7 +58,6 @@ The script uses next to none resources of your computer. I suggest running it on
 
 ## Future improvements
 - **Error Handing**: Improvements to error handling must be made (i.e. program does not react if player is not online)
-- **Singleplayer pregenerating**: Whether it's for a singleplayer or to later upload to a server, the program should have an option to run it in singleplayer without using rcon.
 - **Graphical Interface**: This would help less experienced server admins to use the program.
 
 ## Contributing
