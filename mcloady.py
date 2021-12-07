@@ -1,7 +1,7 @@
-from mcrcon import MCRcon
-from time import sleep
 import configparser
 import os
+from mcrcon import MCRcon
+from time import sleep
 from datetime import timedelta
 
 
@@ -18,7 +18,8 @@ def mcrcon(config):
         print("Could not connect to RCON. Check the following:\n \
                 - Server is online\n \
                 - enable-rcon = true in server.properties\n \
-                - Password and IP are the same in server.properties and config.ini")
+                - Password and IP are the same in server.properties and \
+                    config.ini")
         exit()
     return mcr
 
@@ -70,9 +71,11 @@ def send_tp(mcr, x, y, z, a, b, player):
     Send the telepor command using mcr. 'x', 'y' 'z'
     are cartesian coordinates, 'a' and 'b' are angles.
     """
-    resp = mcr.command("/tp " + player + " " + str(x) + " " +
-                       str(y) + " " + str(z) + " " + str(a) + " " + str(b))
+    tp_parameters = [str(i) for i in ["/tp", player, x, y, z, a, b]]
+    mc_command = ' '.join(tp_parameters)
+    resp = mcr.command(mc_command)
     return resp
+
 
 def generate_node(mcr, x, y, z, first_wait, second_wait, player):
     """
@@ -88,6 +91,7 @@ def generate_node(mcr, x, y, z, first_wait, second_wait, player):
     sleep(second_wait)
     send_tp(mcr, x, y, z, 180, 20, player)
     sleep(second_wait)
+
 
 def calculate_time_remaining(i, normalized_nodes, first_wait, second_wait):
     """
@@ -134,28 +138,43 @@ def main(config):
     normalized_diameter = normalized_radius * 2
     normalized_nodes = round(normalized_diameter ** 2)
     iterator = start_i
+
     while iterator < normalized_nodes:
         if (-normalized_radius <= x <= normalized_radius) and \
            (-normalized_radius <= z <= normalized_radius):
             actual_x = int(x * increments)
             actual_z = int(z * increments)
-            generate_node(mcr, actual_x, y, actual_z, first_wait, second_wait, player)
+            generate_node(mcr,
+                          actual_x,
+                          y,
+                          actual_z,
+                          first_wait,
+                          second_wait,
+                          player)
+
             with open(save_file, 'w') as f:
                 # Write position and next step to file
                 f.write("{0},{1},{2},{3},{4}\n".format(x, z, dx, dz, iterator))
+
             remaining_time = calculate_time_remaining(iterator,
                                                       normalized_nodes,
                                                       first_wait,
                                                       second_wait)
+
             print("Player teleported to position:", str(actual_x), str(y), str(actual_z))
             print("Player teleported to normalized position:", x, str(y), z)
-            print("{0}/{1} nodes completed. {2} left.".format(iterator, normalized_nodes, (normalized_nodes - iterator)))
+            print("{0}/{1} nodes completed. {2} left."
+                  .format(iterator, normalized_nodes,
+                          (normalized_nodes - iterator)))
             print("Approximate remaining time:", remaining_time)
 
             if x == z or (x < 0 and x == -z) or (x > 0 and x == 1-z):
                 dx, dz = -dz, dx
+
             x, z = x+dx, z+dz
+
         iterator += 1
+
     mcr.disconnect()
     print("All finished!")
 
@@ -164,12 +183,17 @@ if __name__ == '__main__':
     config = configparser.ConfigParser()
     config.read("config.ini")
     attempts = 0
+
     while attempts < 3:
         try:
             main(config)
+        # Exit if Ctrl+C or Del is pressed
         except KeyboardInterrupt:
             print("\nExiting...")
             exit(0)
+
+        # Reattempt 3 times if MCRcon fails
+        # Exit after third time
         except mcrcon.exceptions.MCRconException as e:
             print("\nMCRcon Error: ", e)
             if attempts < 3:
@@ -179,4 +203,3 @@ if __name__ == '__main__':
             else:
                 print("Failed 3 times. Exiting...")
                 exit(1)
-

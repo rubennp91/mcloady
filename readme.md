@@ -9,7 +9,7 @@ Fear no more, you don't need a dedicated Minecraft mod for it, just a player in 
 ## Usage
 Download the python file (you will need to have python 3 installed on your machine) or the compiled exe file. Fill in the config.ini file. If you have carpet installed on your server you do not need to spawn a player. If you don't have carpet in your server, you need to spawn a player and leave it logged on in the world.
 
-Make sure RCON is enabled in your server.properties file by setting these parameters:
+Make sure the port 25575 is open for your server, you may need to ask for it to your server provider. Make sure as well that that RCON is enabled in your server.properties file by setting these parameters:
 
 ```
 rcon.port=25575
@@ -29,9 +29,9 @@ Depending on the area you want to load and the time increments you're using, it 
 ## Configuration parameters
 | Parameter   | Description                                                                                                                                                                                            |
 |-------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| server_ip   | This is yoru server IP                                                                                                                                                                                 |
+| server_ip   | This is your server IP                                                                                                                                                                                 |
 | password    | The password you've set in rcon.password in your server.properties file                                                                                                                                |
-| name        | The player name you want to use. If you're not using carpet, that has to be your player and it must be logged on and have op permissions                                                               |
+| name        | The player name you want to use. If you're not using carpet, that has to be your player and it must be logged on                                                               |
 | use_carpet  | In case carpet is available and you don't want to spawn your player into the world, you can use carpet to spawn a bot for you so you don't need to have the Minecraft client open.                     |
 | last_tp     | This is the name of the file where the last teleport will be saved in case the program is interrupted. If it is interrupted it will start again from where it last stopped.                            |
 | radius      | This is the radius from the spawn of the world that you would like to generate.                                                                                                                        |
@@ -39,6 +39,9 @@ Depending on the area you want to load and the time increments you're using, it 
 | increments  | The increments in which the teleports will occur. For a render distance of 12 chunks (196 blocks), an increment of 200 is good. For render distance of 10 chunks, you can set it to increments of 150. |
 | first_wait  | When the first teleport to a new part of the world occurs, the program will wait this time until starting to turn the player around.                                                                   |
 | second_wait | After the first turn of the player has occurred, the program will wait this time to turn the player around.                                                                                            |
+
+## Usage in singleplayer
+To use in singleplayer you can set up a minecraft server on your computer. Set the ip to "0.0.0.0" and configure the rest of the parameters as if you were to use it in a server. There is no need to open any ports.
 
 ## Dependencies
 Python dependencies:
@@ -54,7 +57,7 @@ If carpet mod is available for the version you want to pregenerate, I strongly s
 The script uses next to none resources of your computer. I suggest running it on a raspberry pi if you have one available. I ran this script for a server with a raspberry pi 0w with no problems.
 
 ## Future improvements
-- **Error Handing**: Right now the program does not do any error handling. If an error occurs the user will not know why and the program may not stop.
+- **Error Handing**: Improvements to error handling must be made (i.e. program does not react if player is not online)
 - **Singleplayer pregenerating**: Whether it's for a singleplayer or to later upload to a server, the program should have an option to run it in singleplayer without using rcon.
 - **Graphical Interface**: This would help less experienced server admins to use the program.
 
