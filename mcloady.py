@@ -3,7 +3,9 @@ import os
 from mcrcon import MCRcon
 from time import sleep
 from datetime import timedelta
+from sys import exit
 
+#%%
 
 def mcrcon(config):
     """
@@ -11,7 +13,9 @@ def mcrcon(config):
     return the object mcr so commands can be
     sent from other functions
     """
-    mcr = MCRcon(config['RCON']['server_ip'], config['RCON']['password'])
+    mcr = MCRcon(config['RCON']['server_ip'], 
+                 config['RCON']['password'], 
+                 port=int(config['RCON']['port']))
     try:
         mcr.connect()
     except Exception:
@@ -34,12 +38,12 @@ def player_spawn(config, mcr):
     player = config['PLAYER']['name']
     use_carpet = config['PLAYER']['use_carpet']
     if 'y' in use_carpet.lower():
-        resp = mcr.command("/player spawn " + player)
+        resp = mcr.command("player spawn " + player)
         print(resp)
-        resp = mcr.command("/gamemode spectator " + player)
+        resp = mcr.command("gamemode spectator " + player)
         print(resp)
     else:
-        resp = mcr.command("/gamemode spectator " + player)
+        resp = mcr.command("gamemode spectator " + player)
         print(resp)
     return player
 
@@ -71,7 +75,7 @@ def send_tp(mcr, x, y, z, a, b, player):
     Send the telepor command using mcr. 'x', 'y' 'z'
     are cartesian coordinates, 'a' and 'b' are angles.
     """
-    tp_parameters = [str(i) for i in ["/tp", player, x, y, z, a, b]]
+    tp_parameters = [str(i) for i in ["tp", player, x, y, z, a, b]]
     mc_command = ' '.join(tp_parameters)
     resp = mcr.command(mc_command)
     return resp
@@ -82,6 +86,10 @@ def generate_node(mcr, x, y, z, first_wait, second_wait, player):
     Generate a node using the coordinates and angles. Take in the
     Minecraft RCON object, the coordinates, the primary and secondary
     wait times, and the player object.
+    The 5th parameter is the x-rotation angle (-90 = east, 0=south, 90=west...)
+    The 6th parameter is the y-rotation angle, ie the vertical angle :
+        -90.0 for straight up to 90.0 for straight down
+    (see : https://gaming.stackexchange.com/a/200797)
     """
     send_tp(mcr, x, y, z, -90, 20, player)
     sleep(first_wait)
@@ -162,7 +170,7 @@ def main(config):
                                                       second_wait)
 
             print("Player teleported to position:", str(actual_x), str(y), str(actual_z))
-            print("Player teleported to normalized position:", x, str(y), z)
+            print("Player teleported to normalized position:", x, z)
             print("{0}/{1} nodes completed. {2} left."
                   .format(iterator, normalized_nodes,
                           (normalized_nodes - iterator)))
