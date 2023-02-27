@@ -74,26 +74,18 @@ The script uses next to none resources of your computer. I suggest running it on
 ## Changes since the previous version
 In mcloady.py :
 - add `from sys import exit` in the header
-- Connection command line 16 changed to :
-  ```
-  MCRcon(config['RCON']['server_ip'],config['RCON']['password'],port=int(config['RCON']['port']))
-  ```
-  (add the port parameter)
+- Connection command line 16 changed add the port parameter
 - delete the `/` character at the begining of each RCON command
-- lines 189-190 :
-	```
-  x_center = int(config\['PARAMETERS']\['x_center'])
-  z_center = int(config\['PARAMETERS']\['z_center'])
-  ```
-- lines 209-210 :
-	```
-  actual_x = x_center + int(x * increments)
-  actual_z = z_center + int(z * increments)
-  ```
+- Substituted MCRcon exception handling and moved it to where rcon tries to connect
+- Fixed a bug of player spawning with carpet
+- Fixed a bug where player was not rotating correctly
+- Added function to set and unset gamerules
+- Minor linting
 
 In config.ini :
 - add `port=25575` in RCON section, in case the port choosen by the server is different of default port 25575
 - add `x_center = 0` and `z_center = 0` in PARAMETERS section for starting the spiral at other coordinates
+- add `gamerules` in PARAMETERS section to allow or disallow for changing gamerules that affect the world
 
 
 ## Contributing

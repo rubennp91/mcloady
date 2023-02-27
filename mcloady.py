@@ -5,7 +5,6 @@ from time import sleep
 from datetime import timedelta
 from sys import exit
 
-#%%
 
 def mcrcon(config):
     """
@@ -13,18 +12,15 @@ def mcrcon(config):
     return the object mcr so commands can be
     sent from other functions
     """
-    mcr = MCRcon(config['RCON']['server_ip'], 
-                 config['RCON']['password'], 
+    mcr = MCRcon(config['RCON']['server_ip'],
+                 config['RCON']['password'],
                  port=int(config['RCON']['port']))
+
     try:
         mcr.connect()
-    except Exception:
-        print("Could not connect to RCON. Check the following:\n \
-                - Server is online\n \
-                - enable-rcon = true in server.properties\n \
-                - Password and IP are the same in server.properties and \
-                    config.ini")
-        exit()
+    except Exception as e:
+        print("Error connecting to rcon: ", e)
+
     return mcr
 
 
@@ -38,7 +34,7 @@ def player_spawn(config, mcr):
     player = config['PLAYER']['name']
     use_carpet = config['PLAYER']['use_carpet']
     if 'y' in use_carpet.lower():
-        resp = mcr.command("player spawn " + player)
+        resp = mcr.command("player " + player + " spawn")
         print(resp)
         resp = mcr.command("gamemode spectator " + player)
         print(resp)
@@ -91,13 +87,13 @@ def generate_node(mcr, x, y, z, first_wait, second_wait, player):
         -90.0 for straight up to 90.0 for straight down
     (see : https://gaming.stackexchange.com/a/200797)
     """
-    send_tp(mcr, x, y, z, -90, 20, player)
-    sleep(first_wait)
     send_tp(mcr, x, y, z, 0, 20, player)
-    sleep(second_wait)
-    send_tp(mcr, x, y, z, 90, 20, player)
+    sleep(first_wait)
+    send_tp(mcr, x, y, z, -90, 20, player)
     sleep(second_wait)
     send_tp(mcr, x, y, z, 180, 20, player)
+    sleep(second_wait)
+    send_tp(mcr, x, y, z, 90, 20, player)
     sleep(second_wait)
 
 
@@ -117,6 +113,23 @@ def calculate_time_remaining(i, normalized_nodes, first_wait, second_wait):
     return str(timedelta(seconds=total_time_remaining))
 
 
+def set_gamerules(mcr, end=False):
+    """
+    Function used to set gamerules that could change the world
+    when loaded. Stopped at the beginning, started at the end.
+    """
+    if end:
+        cmds = ["gamerule doDaylightCycle true",
+                "gamerule doWeatherCycle true",
+                "gamerule doFireTick true"]
+    else:
+        cmds = ["gamerule doDaylightCycle false",
+                "gamerule doWeatherCycle false",
+                "gamerule doFireTick false"]
+
+    return [mcr.command(i) for i in cmds]
+
+
 def main(config):
     """
     The main function is used to read config, start
@@ -132,6 +145,11 @@ def main(config):
     y = int(config['PARAMETERS']['altitude'])
     first_wait = int(config['PARAMETERS']['first_wait'])
     second_wait = int(config['PARAMETERS']['second_wait'])
+    gamerules = config['PARAMETERS']['gamerules']
+
+    # Set gamerules if activated in the parameters
+    if gamerules:
+        set_gamerules(mcr)
 
     # Load last saved tp coordinates, next increment, and current iteration.
     x = int(last_tp[0])
@@ -169,7 +187,10 @@ def main(config):
                                                       first_wait,
                                                       second_wait)
 
-            print("Player teleported to position:", str(actual_x), str(y), str(actual_z))
+            print("Player teleported to position:",
+                  str(actual_x),
+                  str(y),
+                  str(actual_z))
             print("Player teleported to normalized position:", x, z)
             print("{0}/{1} nodes completed. {2} left."
                   .format(iterator, normalized_nodes,
@@ -183,6 +204,10 @@ def main(config):
 
         iterator += 1
 
+    # Unset gamerules
+    if gamerules:
+        set_gamerules(mcr, True)
+
     mcr.disconnect()
     print("All finished!")
 
@@ -190,24 +215,10 @@ def main(config):
 if __name__ == '__main__':
     config = configparser.ConfigParser()
     config.read("config.ini")
-    attempts = 0
 
-    while attempts < 3:
-        try:
-            main(config)
-        # Exit if Ctrl+C or Del is pressed
-        except KeyboardInterrupt:
-            print("\nExiting...")
-            exit(0)
-
-        # Reattempt 3 times if MCRcon fails
-        # Exit after third time
-        except mcrcon.exceptions.MCRconException as e:
-            print("\nMCRcon Error: ", e)
-            if attempts < 3:
-                attempts += 1
-                print("Will reattempt in 5 seconds...")
-                sleep(5)
-            else:
-                print("Failed 3 times. Exiting...")
-                exit(1)
+    try:
+        main(config)
+    # Exit if Ctrl+C or Del is pressed
+    except KeyboardInterrupt:
+        print("\nExiting...")
+        exit(0)
