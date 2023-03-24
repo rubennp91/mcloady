@@ -54,7 +54,6 @@ def read_last_tp(config):
     """
     save_file = config['FILE']['last_tp']
     if not os.path.isfile(save_file):
-        altitude = config['PARAMETERS']['altitude']
         # X, Z, dX, dZ, start_i
         last_tp = [0, 0, 0, -1, 0]
         with open(save_file, 'w') as f:
@@ -146,6 +145,8 @@ def main(config):
     first_wait = int(config['PARAMETERS']['first_wait'])
     second_wait = int(config['PARAMETERS']['second_wait'])
     gamerules = config['PARAMETERS']['gamerules']
+    x_center = config['PARAMETERS']['x_center']
+    z_center = config['PARAMETERS']['z_center']
 
     # Set gamerules if activated in the parameters
     if gamerules:
@@ -168,8 +169,8 @@ def main(config):
     while iterator < normalized_nodes:
         if (-normalized_radius <= x <= normalized_radius) and \
            (-normalized_radius <= z <= normalized_radius):
-            actual_x = int(x * increments)
-            actual_z = int(z * increments)
+            actual_x = int(x * increments) + int(x_center)
+            actual_z = int(z * increments) + int(z_center)
             generate_node(mcr,
                           actual_x,
                           y,
