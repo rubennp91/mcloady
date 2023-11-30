@@ -50,6 +50,9 @@ Depending on the area you want to load and the time increments you're using, it 
 | increments  | The increments in which the teleports will occur. For a render distance of 12 chunks (196 blocks), an increment of 200 is good. For render distance of 10 chunks, you can set it to increments of 150. |
 | first_wait  | When the first teleport to a new part of the world occurs, the program will wait this time until starting to turn the player around.	|
 | second_wait | After the first turn of the player has occurred, the program will wait this time to turn the player around.	|
+| gamerules | If set to True it will set doDaylightCycle, doWeatherCycle and doFireTick to false at the beginning of the run and to true at the end of the run. |
+| angle | If set to False it will ignore angles in teleporting. Time between location will not change. For older versions of Minecraft.
+| creative | If set to True it will use Creative mode instead of Spectator mode. Player needs to be in flying mode. For older versions of Minecraft.
 
 ## Usage in singleplayer
 To use in singleplayer you can set up a minecraft server on your computer. Set the ip to "0.0.0.0" and configure the rest of the parameters as if you were to use it in a server. There is no need to open any ports. If you don't want to set up a server, you can use [mcloady_singleplayer](https://github.com/rubennp91/mcloady_singleplayer).
