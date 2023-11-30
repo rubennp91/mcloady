@@ -6,6 +6,10 @@ from datetime import timedelta
 from sys import exit
 
 
+def str2bool(v):
+  return v.lower() in ("yes", "true", "t", "1")
+
+
 def mcrcon(config):
     """
     Establish connection to mcrcon using MCRcon
@@ -32,14 +36,19 @@ def player_spawn(config, mcr):
     as the one set in configuration.
     """
     player = config['PLAYER']['name']
-    use_carpet = config['PLAYER']['use_carpet']
-    if 'y' in use_carpet.lower():
+    use_carpet = str2bool(config['PLAYER']['use_carpet'])
+    creative_true = str2bool(config['PARAMETERS']['creative'])
+    if creative_true:
+        creative = "creative"
+    else:
+        creative = "spectator"
+    if use_carpet:
         resp = mcr.command("player " + player + " spawn")
         print(resp)
-        resp = mcr.command("gamemode spectator " + player)
+        resp = mcr.command("gamemode " + creative + " " + player)
         print(resp)
     else:
-        resp = mcr.command("gamemode spectator " + player)
+        resp = mcr.command("gamemode " + creative + " " + player)
         print(resp)
     return player
 
@@ -65,7 +74,7 @@ def read_last_tp(config):
     return last_tp, save_file
 
 
-def send_tp(mcr, x, y, z, a, b, player):
+def send_tp(mcr, x, y, z, player, a="", b=""):
     """
     Send the telepor command using mcr. 'x', 'y' 'z'
     are cartesian coordinates, 'a' and 'b' are angles.
@@ -76,7 +85,7 @@ def send_tp(mcr, x, y, z, a, b, player):
     return resp
 
 
-def generate_node(mcr, x, y, z, first_wait, second_wait, player):
+def generate_node(mcr, x, y, z, first_wait, second_wait, player, angles):
     """
     Generate a node using the coordinates and angles. Take in the
     Minecraft RCON object, the coordinates, the primary and secondary
@@ -86,14 +95,18 @@ def generate_node(mcr, x, y, z, first_wait, second_wait, player):
         -90.0 for straight up to 90.0 for straight down
     (see : https://gaming.stackexchange.com/a/200797)
     """
-    send_tp(mcr, x, y, z, 0, 20, player)
-    sleep(first_wait)
-    send_tp(mcr, x, y, z, -90, 20, player)
-    sleep(second_wait)
-    send_tp(mcr, x, y, z, 180, 20, player)
-    sleep(second_wait)
-    send_tp(mcr, x, y, z, 90, 20, player)
-    sleep(second_wait)
+    if angles:
+        send_tp(mcr, x, y, z, player, 0, 20)
+        sleep(first_wait)
+        send_tp(mcr, x, y, z, player,  -90, 20)
+        sleep(second_wait)
+        send_tp(mcr, x, y, z, player, 180, 20)
+        sleep(second_wait)
+        send_tp(mcr, x, y, z, player, 90, 20)
+        sleep(second_wait)
+    else:
+        send_tp(mcr, x, y, z, player)
+        sleep(first_wait+(second_wait*3))
 
 
 def calculate_time_remaining(i, normalized_nodes, first_wait, second_wait):
@@ -144,9 +157,10 @@ def main(config):
     y = int(config['PARAMETERS']['altitude'])
     first_wait = int(config['PARAMETERS']['first_wait'])
     second_wait = int(config['PARAMETERS']['second_wait'])
-    gamerules = config['PARAMETERS']['gamerules']
+    gamerules = str2bool(config['PARAMETERS']['gamerules'])
     x_center = config['PARAMETERS']['x_center']
     z_center = config['PARAMETERS']['z_center']
+    angles = str2bool(config['PARAMETERS']['angle'])
 
     # Set gamerules if activated in the parameters
     if gamerules:
@@ -177,7 +191,8 @@ def main(config):
                           actual_z,
                           first_wait,
                           second_wait,
-                          player)
+                          player,
+                          angles)
 
             with open(save_file, 'w') as f:
                 # Write position and next step to file
